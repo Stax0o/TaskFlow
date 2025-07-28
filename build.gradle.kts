@@ -30,6 +30,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.6.3")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding
     implementation("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.projectlombok:lombok")
