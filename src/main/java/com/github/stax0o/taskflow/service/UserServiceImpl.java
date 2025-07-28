@@ -21,9 +21,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO create(UserDTO userDTO) {
         log.info("Создание пользователя: username={}", userDTO.username());
-        checkUsernameAvailable(userDTO.username());
-        checkEmailAvailable(userDTO.email());
         User user = userMapper.toEntity(userDTO);
+        checkUsernameAvailable(user, userDTO.username());
+        checkEmailAvailable(user, userDTO.email());
         User savedUser = userRepository.save(user);
         log.info("Пользователь создан: username={}", userDTO.username());
         return userMapper.toDTO(savedUser);
@@ -40,8 +40,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO update(String username, UserDTO userDTO) {
         User user = getUserByUsername(username);
-        checkUsernameAvailable(userDTO.username());
-        checkEmailAvailable(userDTO.email());
+        checkUsernameAvailable(user, userDTO.username());
+        checkEmailAvailable(user, userDTO.email());
         user.setUsername(userDTO.username());
         user.setEmail(userDTO.email());
         User savedUser = userRepository.save(user);
@@ -67,19 +67,21 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private boolean checkUsernameAvailable(String username) {
-        boolean result = userRepository.existsByUsername(username);
-        log.warn("username уже занят: username={}", username);
+    private void checkUsernameAvailable(User user, String username) {
+        if (userRepository.existsByUsername(username) && !user.getUsername().equals(username)) {
+            log.warn("username уже занят: username={}", username);
 //            todo Создать кастомное исключение BadRequestException
 //            throw new BadRequestException("Username уже существует");
-        return result;
+            throw new IllegalArgumentException("Username уже существует");
+        }
     }
 
-    private boolean checkEmailAvailable(String email) {
-        boolean result = userRepository.existsByEmail(email);
-        log.warn("email уже занят: email={}", email);
+    private void checkEmailAvailable(User user, String email) {
+        if (userRepository.existsByEmail(email) && !user.getEmail().equals(email)) {
+            log.warn("email уже занят: email={}", email);
 //            todo Создать кастомное исключение BadRequestException
 //            throw new BadRequestException("Email уже существует");
-        return result;
+            throw new IllegalArgumentException("Email уже существует");
+        }
     }
 }
