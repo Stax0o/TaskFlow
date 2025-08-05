@@ -40,6 +40,8 @@ public class UserController {
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> delete(@PathVariable String username) {
         userService.delete(username);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

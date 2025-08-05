@@ -56,13 +56,24 @@ public class UserServiceImpl implements UserService {
         log.info("Пользователь удален: username={}", username);
     }
 
-    private User getUserByUsername(String username) {
+    protected User getUserByUsername(String username) {
         log.info("Загрузка пользователя по username={}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     log.warn("Пользователь не найден: username={}", username);
 //                    todo заменить на свое кастомное исключение NotFoundException и @RestControllerAdvice
                     return new EntityNotFoundException("Пользователь не найден: " + username);
+                });
+        return user;
+    }
+
+    protected User getUserById(Long id) {
+        log.info("Загрузка пользователя по id={}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Пользователь не найден: id={}", id);
+//                    todo заменить на свое кастомное исключение NotFoundException и @RestControllerAdvice
+                    return new EntityNotFoundException("Пользователь не найден: " + id);
                 });
         return user;
     }
