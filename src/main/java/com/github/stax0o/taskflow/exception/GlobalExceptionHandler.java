@@ -1,5 +1,6 @@
 package com.github.stax0o.taskflow.exception;
 
+import com.github.stax0o.taskflow.exception.custom.BadRequestException;
 import com.github.stax0o.taskflow.exception.custom.TaskNotFoundException;
 import com.github.stax0o.taskflow.exception.custom.UserNotFoundException;
 import com.github.stax0o.taskflow.exception.dto.ApiError;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<Object> handleTaskNotFoundException(TaskNotFoundException ex, HttpServletRequest req) {
-        log.error("Task not found: {}", ex.getMessage());
+        log.warn("Task not found: {}", ex.getMessage());
 
         ApiError error = new ApiError(
                 "task-not-found",
@@ -33,17 +34,33 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest req) {
-        log.error("User not found: {}", ex.getMessage());
+        log.warn("User not found: {}", ex.getMessage());
 
         ApiError error = new ApiError(
                 "user-not-found",
                 HttpStatus.NOT_FOUND.name(),
                 HttpStatus.NOT_FOUND.value(),
-                "Something went wrong.",
+                ex.getMessage(),
                 req.getRequestURI(),
                 LocalDateTime.now()
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Object> handleBadRequestException(BadRequestException ex, HttpServletRequest req) {
+        log.warn("Bad request: {}", ex.getMessage());
+
+        ApiError error = new ApiError(
+                "bad-request",
+                HttpStatus.BAD_REQUEST.name(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                req.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
