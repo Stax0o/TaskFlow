@@ -5,7 +5,6 @@ import com.github.stax0o.taskflow.entity.Task;
 import com.github.stax0o.taskflow.exception.custom.TaskNotFoundException;
 import com.github.stax0o.taskflow.mapper.TaskMapper;
 import com.github.stax0o.taskflow.repository.TaskRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,18 +23,18 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public TaskDTO create(TaskDTO taskDTO) {
-        log.info("Создание задачи: title={}", taskDTO.title());
+        log.debug("Создание задачи: title={}", taskDTO.title());
         userServiceImpl.getUserById(taskDTO.userId());
         Task task = taskMapper.toEntity(taskDTO);
         Task savedTask = taskRepository.save(task);
-        log.info("Задача создана: title={}, id={}", savedTask.getTitle(), savedTask.getId());
+        log.debug("Задача создана: title={}, id={}", savedTask.getTitle(), savedTask.getId());
         return taskMapper.toDTO(savedTask);
     }
 
     @Override
     public TaskDTO getTaskById(Long id) {
         Task task = getTaskByTaskId(id);
-        log.info("Задача загружена: id={}", id);
+        log.debug("Задача загружена: id={}", id);
         return taskMapper.toDTO(task);
     }
 
@@ -49,7 +48,7 @@ public class TaskServiceImpl implements TaskService {
         task.setDeadline(taskDTO.deadline());
         task.setUser(userServiceImpl.getUserById(taskDTO.id()));
         Task updatedTask = taskRepository.save(task);
-        log.info("Задача обновлена: id={}", updatedTask.getId());
+        log.debug("Задача обновлена: id={}", updatedTask.getId());
         return taskMapper.toDTO(updatedTask);
     }
 
@@ -57,22 +56,22 @@ public class TaskServiceImpl implements TaskService {
     public void delete(Long id) {
         Task task = getTaskByTaskId(id);
         taskRepository.delete(task);
-        log.info("Задача удалена: id={}", id);
+        log.debug("Задача удалена: id={}", id);
     }
 
     @Transactional
     @Override
     public List<TaskDTO> getTasksByUsername(String username) {
-        log.info("Получение списка задач по username: username={}", username);
+        log.debug("Получение списка задач по username: username={}", username);
         List<Task> tasks = taskRepository.getAllByUserUsername(username);
-        log.info("Список задач по username получен: username={}", username);
+        log.debug("Список задач по username получен: username={}", username);
         return tasks.stream()
                 .map(taskMapper::toDTO)
                 .toList();
     }
 
     private Task getTaskByTaskId(Long id) {
-        log.info("Загрузка задачи по id={}", id);
+        log.debug("Загрузка задачи по id={}", id);
         return taskRepository.getTasksById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
     }

@@ -22,20 +22,20 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDTO create(UserDTO userDTO) {
-        log.info("Создание пользователя: username={}", userDTO.username());
+        log.debug("Создание пользователя: username={}", userDTO.username());
         if (userRepository.existsByUsername(userDTO.username()) || userRepository.existsByEmail(userDTO.email())) {
             throw new BadRequestException(String.format("Username или email уже занят: username={%s}, email={%s}", userDTO.username(), userDTO.email()));
         }
         User user = userMapper.toEntity(userDTO);
         User savedUser = userRepository.save(user);
-        log.info("Пользователь создан: username={}", userDTO.username());
+        log.debug("Пользователь создан: username={}", userDTO.username());
         return userMapper.toDTO(savedUser);
     }
 
     @Override
     public UserDTO getByUsername(String username) {
         User user = getUserByUsername(username);
-        log.info("Пользователь найден: username={}", username);
+        log.debug("Пользователь найден: username={}", username);
         return userMapper.toDTO(user);
     }
 
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDTO.username());
         user.setEmail(userDTO.email());
         User savedUser = userRepository.save(user);
-        log.info("Данные пользователя обновлены: new username={}", user.getUsername());
+        log.debug("Данные пользователя обновлены: new username={}", user.getUsername());
         return userMapper.toDTO(savedUser);
     }
 
@@ -56,17 +56,17 @@ public class UserServiceImpl implements UserService {
     public void delete(String username) {
         User user = getUserByUsername(username);
         userRepository.delete(user);
-        log.info("Пользователь удален: username={}", username);
+        log.debug("Пользователь удален: username={}", username);
     }
 
     protected User getUserByUsername(String username) {
-        log.info("Загрузка пользователя по username={}", username);
+        log.debug("Загрузка пользователя по username={}", username);
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
     }
 
     protected User getUserById(Long id) {
-        log.info("Загрузка пользователя по id={}", id);
+        log.debug("Загрузка пользователя по id={}", id);
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
