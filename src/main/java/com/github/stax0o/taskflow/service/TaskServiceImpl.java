@@ -18,12 +18,14 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
+//    todo не использовать реализацию, использовать интерфейс
     private final UserServiceImpl userServiceImpl;
 
     @Transactional
     @Override
     public TaskDTO create(TaskDTO taskDTO) {
         log.debug("Создание задачи: title={}", taskDTO.title());
+        //todo по возможности убрать зависимость от реализации
         userServiceImpl.getUserById(taskDTO.userId());
         Task task = taskMapper.toEntity(taskDTO);
         Task savedTask = taskRepository.save(task);
