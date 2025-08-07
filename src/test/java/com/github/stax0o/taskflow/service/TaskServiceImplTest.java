@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -294,5 +295,66 @@ class TaskServiceImplTest {
 
         verify(taskRepository).getTasksById(taskId);
         verify(userRepository).findById(nonExistentUserId);
+    }
+
+    @Test
+    void getTasksByUsername() {
+        Long userId = 1L;
+        String username = "user123";
+        User user = new User();
+        user.setId(userId);
+        user.setUsername(username);
+
+        Task task1 = taskBuilder(
+                1L,
+                TITLE,
+                DESCRIPTION,
+                STATUS,
+                DEADLINE,
+                user
+        );
+
+        Task task2 = taskBuilder(
+                2L,
+                TITLE,
+                DESCRIPTION,
+                STATUS,
+                DEADLINE,
+                user
+        );
+
+        List<Task> taskList = List.of(task1, task2);
+
+        TaskDTO taskDTO1 = new TaskDTO(
+                1L,
+                TITLE,
+                DESCRIPTION,
+                STATUS,
+                DEADLINE,
+                userId
+        );
+
+        TaskDTO taskDTO2 = new TaskDTO(
+                2L,
+                TITLE,
+                DESCRIPTION,
+                STATUS,
+                DEADLINE,
+                userId
+        );
+
+        when(taskRepository.getAllByUserUsername(username)).thenReturn(taskList);
+        when(taskMapper.toDTO(task1)).thenReturn(taskDTO1);
+        when(taskMapper.toDTO(task2)).thenReturn(taskDTO2);
+
+        List<TaskDTO> result = taskServiceImpl.getTasksByUsername(username);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(taskDTO1));
+        assertTrue(result.contains(taskDTO2));
+
+        verify(taskRepository).getAllByUserUsername(username);
+        verify(taskMapper).toDTO(task1);
+        verify(taskMapper).toDTO(task2);
     }
 }
