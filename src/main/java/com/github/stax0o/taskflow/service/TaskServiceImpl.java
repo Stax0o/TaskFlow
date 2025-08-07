@@ -2,9 +2,12 @@ package com.github.stax0o.taskflow.service;
 
 import com.github.stax0o.taskflow.dto.TaskDTO;
 import com.github.stax0o.taskflow.entity.Task;
+import com.github.stax0o.taskflow.entity.User;
 import com.github.stax0o.taskflow.exception.custom.TaskNotFoundException;
+import com.github.stax0o.taskflow.exception.custom.UserNotFoundException;
 import com.github.stax0o.taskflow.mapper.TaskMapper;
 import com.github.stax0o.taskflow.repository.TaskRepository;
+import com.github.stax0o.taskflow.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,15 +21,15 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
-//    todo не использовать реализацию, использовать интерфейс
-    private final UserServiceImpl userServiceImpl;
+    private final UserRepository userRepository;
 
     @Transactional
     @Override
     public TaskDTO create(TaskDTO taskDTO) {
         log.debug("Создание задачи: title={}", taskDTO.title());
-        //todo по возможности убрать зависимость от реализации
-        userServiceImpl.getUserById(taskDTO.userId());
+        if (!userRepository.existsById(taskDTO.userId())) {
+            throw new UserNotFoundException(taskDTO.userId());
+        }
         Task task = taskMapper.toEntity(taskDTO);
         Task savedTask = taskRepository.save(task);
         log.debug("Задача создана: title={}, id={}", savedTask.getTitle(), savedTask.getId());
@@ -44,11 +47,15 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDTO update(Long id, TaskDTO taskDTO) {
         Task task = getTaskByTaskId(id);
+        log.debug("Загрузка пользователя по id={}", taskDTO.userId());
+        User user = userRepository.findById(taskDTO.userId())
+                .orElseThrow(() -> new UserNotFoundException(taskDTO.userId()));
+        task.setUser(user);
         task.setTitle(taskDTO.title());
         task.setDescription(taskDTO.description());
         task.setStatus(taskDTO.status());
         task.setDeadline(taskDTO.deadline());
-        task.setUser(userServiceImpl.getUserById(taskDTO.id()));
+
         Task updatedTask = taskRepository.save(task);
         log.debug("Задача обновлена: id={}", updatedTask.getId());
         return taskMapper.toDTO(updatedTask);
@@ -56,8 +63,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void delete(Long id) {
-        Task task = getTaskByTaskId(id);
-        taskRepository.delete(task);
+        taskRepository.deleteById(id);
         log.debug("Задача удалена: id={}", id);
     }
 

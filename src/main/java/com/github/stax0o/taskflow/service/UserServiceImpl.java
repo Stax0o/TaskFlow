@@ -59,16 +59,10 @@ public class UserServiceImpl implements UserService {
         log.debug("Пользователь удален: username={}", username);
     }
 
-    protected User getUserByUsername(String username) {
+    private User getUserByUsername(String username) {
         log.debug("Загрузка пользователя по username={}", username);
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
-    }
-
-    protected User getUserById(Long id) {
-        log.debug("Загрузка пользователя по id={}", id);
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     private void checkUsernameAvailable(User user, String username) {
