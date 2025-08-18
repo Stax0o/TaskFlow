@@ -9,7 +9,6 @@ import com.github.stax0o.taskflow.integration.AbstractIntegrationTest;
 import com.github.stax0o.taskflow.repository.TaskRepository;
 import com.github.stax0o.taskflow.repository.UserRepository;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +18,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +44,8 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
             Status.TODO,
             LocalDateTime.now().plusDays(3),
             1L);
+    @Autowired
+    private UserRepository userRepository;
 
     @BeforeAll
     static void createUser(
@@ -68,15 +69,15 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /api/tasks - создание задачи")
     void create_shouldCreatedTask() throws Exception {
+        long taskCount = taskRepository.count();
         mockMvc.perform(post("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(simpleTask)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.title").value(simpleTask.title()))
                 .andExpect(jsonPath("$.description").value(simpleTask.description()));
 
-        assertEquals(2, taskRepository.count());
+        assertEquals(taskCount + 1, taskRepository.count());
     }
 
     @Test
@@ -90,6 +91,36 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.status").value(simpleTask.status().name()));
     }
 
+    @Test
+    @DisplayName("PUT /api/tasks - обновление задачи")
+    void update() throws Exception {
+        User user = new User();
+        user.setEmail("test+" + UUID.randomUUID() + "@gmail.com");
+        user.setUsername("test+" + UUID.randomUUID());
+        user = userRepository.save(user);
 
+        Task task = new Task();
+        task.setTitle("Title");
+        task.setDescription("Description");
+        task.setStatus(Status.TODO);
+        task.setDeadline(LocalDateTime.now().plusDays(3));
+        task.setUser(user);
+        task = taskRepository.save(task);
 
+        Long taskCount = taskRepository.count();
+
+        TaskDTO newTaskDTO = new TaskDTO(null, "New title", "New description", Status.IN_PROGRESS, LocalDateTime.now().plusDays(5), 1L);
+
+        mockMvc.perform(put("/api/tasks/" + task.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newTaskDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(task.getId()))
+                .andExpect(jsonPath("$.title").value(newTaskDTO.title()))
+                .andExpect(jsonPath("$.description").value(newTaskDTO.description()))
+                .andExpect(jsonPath("$.status").value(newTaskDTO.status().name()))
+                .andExpect(jsonPath("$.userId").value(1L));
+
+        assertEquals(taskCount, taskRepository.count());
+    }
 }
