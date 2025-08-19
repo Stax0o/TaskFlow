@@ -1,4 +1,4 @@
-package com.github.stax0o.taskflow.integration.service;
+package com.github.stax0o.taskflow.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.stax0o.taskflow.dto.TaskDTO;
@@ -28,12 +28,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class TaskControllerIntegratedTest extends AbstractIntegrationTest {
+class TaskControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -45,9 +48,6 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
             Status.TODO,
             LocalDateTime.now().plusDays(3),
             1L);
-
-    @Autowired
-    private UserRepository userRepository;
 
     @BeforeAll
     static void createUserAndTask(
@@ -120,7 +120,7 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/tasks/{id} - удаление задачи")
+    @DisplayName("DELETE /api/tasks/{id} - удаление задачи")
     void delete() throws Exception {
         Task task = createTask(createUser());
 
