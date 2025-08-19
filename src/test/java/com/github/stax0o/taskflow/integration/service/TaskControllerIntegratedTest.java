@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -44,17 +45,18 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
             Status.TODO,
             LocalDateTime.now().plusDays(3),
             1L);
+
     @Autowired
     private UserRepository userRepository;
 
     @BeforeAll
-    static void createUser(
+    static void createUserAndTask(
             @Autowired UserRepository userRepository,
             @Autowired TaskRepository taskRepository
     ) {
         User user = new User();
-        user.setUsername("testUser");
-        user.setEmail("test@gmail.com");
+        user.setEmail("test+" + UUID.randomUUID() + "@gmail.com");
+        user.setUsername("test+" + UUID.randomUUID());
         user = userRepository.save(user);
 
         Task task = new Task();
@@ -81,7 +83,7 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/tasks - Запрос задачи")
+    @DisplayName("GET /api/tasks/{id} - запрос задачи")
     void getTaskById() throws Exception {
         mockMvc.perform(get("/api/tasks/1"))
                 .andExpect(status().isOk())
@@ -92,24 +94,17 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /api/tasks - обновление задачи")
+    @DisplayName("PUT /api/tasks/{id} - обновление задачи")
     void update() throws Exception {
-        User user = new User();
-        user.setEmail("test+" + UUID.randomUUID() + "@gmail.com");
-        user.setUsername("test+" + UUID.randomUUID());
-        user = userRepository.save(user);
+        User user = createUser();
 
-        Task task = new Task();
-        task.setTitle("Title");
-        task.setDescription("Description");
-        task.setStatus(Status.TODO);
-        task.setDeadline(LocalDateTime.now().plusDays(3));
-        task.setUser(user);
-        task = taskRepository.save(task);
+        Task task = createTask(user);
 
-        Long taskCount = taskRepository.count();
+        long taskCount = taskRepository.count();
 
-        TaskDTO newTaskDTO = new TaskDTO(null, "New title", "New description", Status.IN_PROGRESS, LocalDateTime.now().plusDays(5), 1L);
+        long newUserId = 1L;
+
+        TaskDTO newTaskDTO = new TaskDTO(null, "New title", "New description", Status.IN_PROGRESS, LocalDateTime.now().plusDays(5), newUserId);
 
         mockMvc.perform(put("/api/tasks/" + task.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -119,8 +114,56 @@ class TaskControllerIntegratedTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.title").value(newTaskDTO.title()))
                 .andExpect(jsonPath("$.description").value(newTaskDTO.description()))
                 .andExpect(jsonPath("$.status").value(newTaskDTO.status().name()))
-                .andExpect(jsonPath("$.userId").value(1L));
+                .andExpect(jsonPath("$.userId").value(newUserId));
 
         assertEquals(taskCount, taskRepository.count());
+    }
+
+    @Test
+    @DisplayName("GET /api/tasks/{id} - удаление задачи")
+    void delete() throws Exception {
+        Task task = createTask(createUser());
+
+        long taskCount = taskRepository.count();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/" + task.getId()))
+                .andExpect(status().isNoContent());
+
+        assertEquals(taskCount - 1, taskRepository.count());
+    }
+
+    @Test
+    @DisplayName("GET /api/tasks/{username} - получение задач пользователя")
+    void getTasksByUsername() throws Exception {
+        User user = createUser();
+        Task task1 = createTask(user);
+        Task task2 = createTask(user);
+
+        mockMvc.perform(get("/api/tasks/user_tasks/" + user.getUsername()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(task1.getId()))
+                .andExpect(jsonPath("$[0].title").value(task1.getTitle()))
+                .andExpect(jsonPath("$[0].description").value(task1.getDescription()))
+                .andExpect(jsonPath("$[1].id").value(task2.getId()))
+                .andExpect(jsonPath("$[1].title").value(task2.getTitle()))
+                .andExpect(jsonPath("$[1].description").value(task2.getDescription()));
+    }
+
+    private User createUser() {
+        User user = new User();
+        user.setEmail("test+" + UUID.randomUUID() + "@gmail.com");
+        user.setUsername("test+" + UUID.randomUUID());
+        return userRepository.save(user);
+    }
+
+    private Task createTask(User user) {
+        Task task = new Task();
+        task.setTitle("Title");
+        task.setDescription("Description");
+        task.setStatus(Status.TODO);
+        task.setDeadline(LocalDateTime.now().plusDays(3));
+        task.setUser(user);
+        return taskRepository.save(task);
     }
 }
