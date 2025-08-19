@@ -1,4 +1,4 @@
-package com.github.stax0o.taskflow.service;
+package com.github.stax0o.taskflow.unit.service;
 
 import com.github.stax0o.taskflow.dto.TaskDTO;
 import com.github.stax0o.taskflow.entity.Task;
@@ -9,6 +9,7 @@ import com.github.stax0o.taskflow.exception.custom.UserNotFoundException;
 import com.github.stax0o.taskflow.mapper.TaskMapper;
 import com.github.stax0o.taskflow.repository.TaskRepository;
 import com.github.stax0o.taskflow.repository.UserRepository;
+import com.github.stax0o.taskflow.service.TaskServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
