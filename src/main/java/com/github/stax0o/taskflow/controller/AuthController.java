@@ -1,5 +1,7 @@
 package com.github.stax0o.taskflow.controller;
 
+import com.github.stax0o.taskflow.dto.LoginRequestDTO;
+import com.github.stax0o.taskflow.dto.LoginResponseDTO;
 import com.github.stax0o.taskflow.dto.RegisterRequestDTO;
 import com.github.stax0o.taskflow.service.AuthService;
 import jakarta.validation.Valid;
@@ -24,5 +26,11 @@ public class AuthController {
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO requestDTO) {
         authService.register(requestDTO);
         return ResponseEntity.ok("User register successfully");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO requestDTO) {
+        String result = authService.login(requestDTO);
+        return ResponseEntity.ok(new LoginResponseDTO(result));
     }
 }
