@@ -6,6 +6,7 @@ import com.github.stax0o.taskflow.entity.User;
 import com.github.stax0o.taskflow.enums.Role;
 import com.github.stax0o.taskflow.exception.custom.BadRequestException;
 import com.github.stax0o.taskflow.repository.UserRepository;
+import com.github.stax0o.taskflow.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     public void register(RegisterRequestDTO requestDTO) {
         if (userRepository.existsByEmail(requestDTO.email())) {
@@ -52,6 +54,6 @@ public class AuthService {
             throw new BadRequestException(String.format("Введен неверный email или пароль: email={%s}", requestDTO.email()));
         }
 
-        return "Login successful";
+        return jwtService.generationToken(requestDTO.email());
     }
 }
