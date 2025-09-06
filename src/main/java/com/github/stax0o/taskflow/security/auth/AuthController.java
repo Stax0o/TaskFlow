@@ -1,9 +1,8 @@
-package com.github.stax0o.taskflow.controller;
+package com.github.stax0o.taskflow.security.auth;
 
-import com.github.stax0o.taskflow.dto.LoginRequestDTO;
-import com.github.stax0o.taskflow.dto.LoginResponseDTO;
-import com.github.stax0o.taskflow.dto.RegisterRequestDTO;
-import com.github.stax0o.taskflow.service.AuthService;
+import com.github.stax0o.taskflow.security.dto.LoginRequestDTO;
+import com.github.stax0o.taskflow.security.dto.LoginResponseDTO;
+import com.github.stax0o.taskflow.security.dto.RegisterRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

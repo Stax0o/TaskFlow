@@ -1,7 +1,7 @@
-package com.github.stax0o.taskflow.service;
+package com.github.stax0o.taskflow.security.auth;
 
-import com.github.stax0o.taskflow.dto.LoginRequestDTO;
-import com.github.stax0o.taskflow.dto.RegisterRequestDTO;
+import com.github.stax0o.taskflow.security.dto.LoginRequestDTO;
+import com.github.stax0o.taskflow.security.dto.RegisterRequestDTO;
 import com.github.stax0o.taskflow.entity.User;
 import com.github.stax0o.taskflow.enums.Role;
 import com.github.stax0o.taskflow.exception.custom.BadRequestException;
