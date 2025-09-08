@@ -1,12 +1,17 @@
 package com.github.stax0o.taskflow.controller;
 
 import com.github.stax0o.taskflow.dto.UserDTO;
+import com.github.stax0o.taskflow.entity.User;
+import com.github.stax0o.taskflow.mapper.UserMapper;
+import com.github.stax0o.taskflow.security.user.CustomUserDetails;
 import com.github.stax0o.taskflow.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class UserController {
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @PostMapping
     public ResponseEntity<UserDTO> create(@RequestBody @Valid UserDTO userDTO) {
@@ -41,6 +47,7 @@ public class UserController {
         return ResponseEntity.ok(updateUser);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> delete(@PathVariable String username) {
         log.info("DELETE /api/users/{} | Удаление пользователя", username);
@@ -48,5 +55,13 @@ public class UserController {
         return ResponseEntity
                 .noContent()
                 .build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        UserDTO userDTO = userMapper.toDTO(user);
+
+        return ResponseEntity.ok(userDTO);
     }
 }
